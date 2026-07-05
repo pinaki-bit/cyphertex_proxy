@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  encryptionHistory EncryptionHistory[]
+  auditLogs         AuditLog[]
+}
+
+model EncryptionHistory {
+  id              String   @id @default(uuid())
+  userId          String?
+  algorithmId     String
+  action          String   // "encrypt" | "decrypt"
+  inputLength     Int
+  outputLength    Int
+  processingTimeMs Float
+  createdAt       DateTime @default(now())
+
+  user            User?    @relation(fields: [userId], references: [id])
+}
+
+model AlgorithmUsage {
+  id              String   @id @default(uuid())
+  algorithmId     String   @unique
+  totalEncryptions Int      @default(0)
+  totalDecryptions Int      @default(0)
+  avgProcessingTime Float   @default(0)
+  lastUsedAt      DateTime @default(now())
+}
+
+model SecurityAnalysisHistory {
+  id              String   @id @default(uuid())
+  algorithmId     String
+  inputLength     Int
+  securityLevel   String
+  createdAt       DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  event     String
+  details   Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id])
+}
